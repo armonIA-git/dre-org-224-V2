@@ -116,7 +116,7 @@ label.btn{margin:0;font-size:17px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
 .chip{min-height:44px;padding:0 14px;border-radius:99px;border:2px solid var(--line);background:var(--bg);font-weight:500}
 nav{flex:none;display:flex;background:var(--surface);padding:6px 6px calc(6px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
-nav button{flex:1;min-height:60px;border:0;background:none;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:13px;font-weight:700;color:var(--muted)}
+nav button{flex:1;min-width:0;min-height:62px;padding:4px 2px;line-height:1.1;text-align:center;border:0;background:none;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11.5px;font-weight:700;color:var(--muted)}
 nav svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 nav button[aria-current="page"]{color:var(--accent);background:var(--soft)}
 .ringwrap{position:relative;width:min(78vw,300px);margin:18px auto}
@@ -220,7 +220,7 @@ const ICON={
   list:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L6.8 5M3.5 12l1.2 1.2L6.8 11M3.5 18l1.2 1.2L6.8 17"/>',
   timer:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/>'
 };
-const TABS=[['oggi','Oggi','sun'],['cose','Cose','pin'],['agenda','Agenda','cal'],['piano','Piano','list'],['fuoco','Fuoco','timer']];
+const TABS=[['oggi','La mia giornata','sun'],['cose','Dove ho messo','pin'],['agenda','Appuntamenti','cal'],['piano','Piani lunghi','list'],['fuoco','Focus','timer']];
 const TICK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const exTag=o=>o.ex?'<span class="tag">Esempio</span>':'';
 
@@ -236,7 +236,7 @@ function oggi(){
   const nDone=exitItems.filter(x=>x.done).length;
   const allDone=exitItems.length>0&&nDone===exitItems.length;
   const plans=S.plans.filter(p=>p.date===today()&&p.steps.some(s=>!s.done));
-  let h='<p class="date">'+esc(now.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'}))+'</p><h1>'+greet()+(S.name?', '+esc(S.name):'')+'</h1>';
+  let h='<p class="date">'+esc(now.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'}))+'</p><h1>'+greet()+' '+esc(S.name||'Andrea')+'</h1>';
   if(noSave)h+='<div class="warn">Questo browser non permette di salvare. I dati si perdono alla chiusura. Usa Esporta nelle impostazioni.</div>';
   if(ev){
     const d=evDate(ev),mins=Math.round((d-Date.now())/60000);
@@ -248,7 +248,7 @@ function oggi(){
       +(ev.bring.length?'<div class="head"><b>Cosa portare</b><span class="count">'+ev.bring.filter(b=>b.done).length+'/'+ev.bring.length+'</span></div>'+checklist(ev.bring,'bring',ev.id):'')
       +'</section>';
   }else{
-    h+='<section class="card deep"><h2>Nessun appuntamento in arrivo</h2><p>Aggiungine uno in Agenda e scrivi cosa portare.</p><button class="btn alt" data-act="go" data-v="agenda">Apri Agenda</button></section>';
+    h+='<section class="card deep"><h2>Nessun appuntamento in arrivo</h2><p>Aggiungine uno in Appuntamenti e scrivi cosa portare.</p><button class="btn alt" data-act="go" data-v="agenda">Apri Appuntamenti</button></section>';
   }
   h+='<section class="card"><div class="head"><h2>Prima di uscire</h2><span class="count">'+nDone+'/'+exitItems.length+'</span></div>'
     +(exitItems.length?checklist(exitItems,'exit',''):'<p class="hint">Lista vuota. Aggiungila dalle impostazioni.</p>')
@@ -323,7 +323,7 @@ function evDetail(e){
 /* ---------- PIANO ---------- */
 function piano(){
   const list=S.plans.slice().sort((a,b)=>(a.date<b.date?1:-1));
-  return '<h1>Piani</h1><p class="hint">Giornata, viaggio, evento o un compito da spezzare in passi piccoli.</p>'
+  return '<h1>Piani lunghi</h1><p class="hint">Giornata, viaggio, evento o un compito da spezzare in passi piccoli.</p>'
    +(list.length?list.map(p=>{const dn=p.steps.filter(s=>s.done).length,pc=p.steps.length?Math.round(dn/p.steps.length*100):0;
      return '<button class="evcard" style="display:block" data-act="plan-open" data-id="'+p.id+'"><p class="eyebrow" style="margin:0 0 2px">'+esc(p.kind)+' · '+(p.date===today()?'oggi':new Date(p.date+'T12:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'}))+exTag(p)+'</p><b style="font-size:19px">'+esc(p.title)+'</b><div class="bar"><i style="width:'+pc+'%"></i></div><span class="hint" style="font-size:15px">'+dn+' di '+p.steps.length+' fatti</span></button>'}).join(''):'<div class="empty">Nessun piano.</div>')
    +'<div class="stick"><button class="btn" data-act="plan-new">+ Nuovo piano</button></div>';
@@ -360,8 +360,8 @@ function fuoco(){
   if(running)ctl='<div class="row"><button class="btn" data-act="timer-pause">Pausa</button><button class="btn alt" data-act="timer-stop">Stop</button></div>';
   else if(paused)ctl='<div class="row"><button class="btn" data-act="timer-resume">Riprendi</button><button class="btn alt" data-act="timer-stop">Stop</button></div>';
   else ctl=(T&&T.done?'<p class="done-msg" style="text-align:center">Blocco finito. Fai una pausa di 5 minuti.</p>':'')
-    +'<label for="tl">Cosa fai in questo blocco? (facoltativo)</label><input id="tl" class="inp" placeholder="Es. Scrivere la mail" autocomplete="off"><label>Quanto dura</label><div class="presets">'+[5,10,15,25].map(m=>'<button class="btn" data-act="timer-start" data-min="'+m+'">'+m+'</button>').join('')+'</div><p class="hint" style="text-align:center;margin-top:8px">minuti</p>';
-  return '<h1>Fuoco</h1><p class="hint">Un blocco alla volta, poi una pausa. Tieni la schermata aperta.</p>'
+    +'<label for="tl">Cosa fai in questo blocco? (facoltativo)</label><input id="tl" class="inp" placeholder="Es. Scrivere la mail" autocomplete="off"><label>Quanto dura</label><div class="presets">'+[5,10,15,20,25,30,45,60].map(m=>'<button class="btn" data-act="timer-start" data-min="'+m+'">'+m+'</button>').join('')+'</div><p class="hint" style="text-align:center;margin-top:8px">minuti</p><label for="tmin">Oppure scegli tu i minuti (da 1 a 60)</label><div style="display:flex;gap:8px"><input id="tmin" class="inp" type="number" inputmode="numeric" min="1" max="60" placeholder="Es. 40"><button class="btn" data-act="timer-custom">Avvia</button></div>';
+  return '<h1>Focus</h1><p class="hint">Un blocco alla volta, poi una pausa. Tieni la schermata aperta.</p>'
    +'<div class="ringwrap"><svg viewBox="0 0 200 200" class="ring" aria-hidden="true"><circle class="ring-bg" cx="100" cy="100" r="88"/><circle id="ring" class="ring-fg" cx="100" cy="100" r="88" stroke-dasharray="'+CIRC+'" style="stroke-dashoffset:'+(CIRC*(1-(total?left/total:1)))+'"/></svg><div class="ringtxt"><div id="tm" class="tm" role="timer">'+mmss(left)+'</div><div class="tl">'+(T&&T.done?'Tempo scaduto':esc(T&&T.label||''))+'</div></div></div>'+ctl;
 }
 let ac=null,wl=null;
@@ -382,11 +382,13 @@ setInterval(tick,250);
 setInterval(()=>{if(S&&view==='oggi'&&!sheetFn)render()},60000);
 
 /* ---------- impostazioni ---------- */
+const VERSION='V4';
 function settingsHtml(){
-  return '<h2>Impostazioni</h2><form data-form="settings"><label for="s-name">Come ti chiamo</label><input id="s-name" class="inp" value="'+esc(S.name)+'" placeholder="Il tuo nome"><label for="s-exit">Lista "Prima di uscire" (una per riga)</label><textarea id="s-exit" class="inp" rows="5">'+esc(S.exit.map(x=>x.t).join('\n'))+'</textarea><div class="row"><button class="btn" type="submit">Salva</button></div></form>'
+  return '<h2>Impostazioni</h2><form data-form="settings"><label for="s-name">Come ti chiamo</label><input id="s-name" class="inp" value="'+esc(S.name||'Andrea')+'" placeholder="Il tuo nome"><label for="s-exit">Lista "Prima di uscire" (una per riga)</label><textarea id="s-exit" class="inp" rows="5">'+esc(S.exit.map(x=>x.t).join('\n'))+'</textarea><div class="row"><button class="btn" type="submit">Salva</button></div></form>'
    +'<h3>Dati</h3><p class="hint">Tutto resta su questo telefono, nel browser. Se cambi telefono o cancelli i dati del browser, li perdi. Esporta ogni tanto.</p>'
    +'<div class="row"><button class="btn alt" data-act="export">Esporta backup</button><button class="btn alt" data-act="import">Importa backup</button></div>'
-   +(S.things.some(x=>x.ex)||S.events.some(x=>x.ex)||S.plans.some(x=>x.ex)?'<div class="row"><button class="btn ghost" data-act="clear-ex">Togli gli esempi</button></div>':'');
+   +(S.things.some(x=>x.ex)||S.events.some(x=>x.ex)||S.plans.some(x=>x.ex)?'<div class="row"><button class="btn ghost" data-act="clear-ex">Togli gli esempi</button></div>':'')
+   +'<p class="hint" style="margin-top:18px;font-size:14px">DRE\'s Organizer · versione '+VERSION+'</p>';
 }
 
 /* ---------- guscio: render, sheet, toast ---------- */
@@ -449,6 +451,7 @@ document.addEventListener('click',ev=>{
     case 'focus-later':{const p=plan(d.o);if(p){const i=p.steps.findIndex(x=>x.id===d.id);if(i>=0){const [s]=p.steps.splice(i,1);p.steps.push(s);changed()}}}break;
     case 'timer-step':{const p=plan(d.o),s=p&&p.steps.find(x=>x.id===d.id);startTimer(+d.min,s?s.t:'')}break;
     case 'timer-start':{const l=$('#tl');startTimer(+d.min,l?l.value.trim():'')}break;
+    case 'timer-custom':{const n=parseInt(($('#tmin')||{}).value,10);if(!n||n<1||n>60){toast('Scrivi un numero da 1 a 60');break}const l=$('#tl');startTimer(n,l?l.value.trim():'')}break;
     case 'timer-pause':{const T=S.timer;if(T&&T.end){T.left=Math.max(1,Math.ceil((T.end-Date.now())/1000));T.end=null;save();render()}}break;
     case 'timer-resume':{const T=S.timer;if(T&&T.left){unlockAudio();T.end=Date.now()+T.left*1000;T.left=null;save();render()}}break;
     case 'timer-stop':S.timer=null;save();render();break;
